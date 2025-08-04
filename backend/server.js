@@ -7,8 +7,8 @@ import bodyParser from 'body-parser';
 
 dotenv.config({ path: './backend/.env' });
 const port = 5000;
-//console.log('Stripe Key:', process.env.STRIPE_SECRET_KEY); 
-const stripe =new Stripe( process.env.STRIPE_SECRET_KEY);
+console.log('Stripe Key:', process.env.STRIPE_SECRET_KEY); 
+const stripe =new Stripe(process.env.STRIPE_SECRET_KEY);
 
 import { handleLogin } from './login.js';
 import {users} from './data.js'
