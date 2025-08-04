@@ -1,0 +1,13 @@
+{
+  "name": "bus",
+  "private": true,
+  "type": "module",
+ "scripts": {
+  "dev": "concurrently \"cd frontend && npx vite --host\" \"node backend/server.js\"",
+  "build": "cd frontend && npx vite build",
+  "preview": "cd frontend && npx vite preview"
+},
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
