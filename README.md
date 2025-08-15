@@ -27,6 +27,9 @@ bus/
 ```bash
 git clone https://github.com/Refilwe58/bus.git
 cd bus
+Install root dependencies 
+
+npm install
 Install backend dependencies:
 
 cd backend
