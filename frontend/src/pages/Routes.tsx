@@ -8,6 +8,7 @@ import { LatLngExpression, LatLngBoundsExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
+import { useNavigate } from "react-router-dom";
 
 const DefaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
@@ -79,9 +80,8 @@ const getRoadRoute = async (coords: [number, number][]) => {
 
 ////eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjZjNzNkMTUxMzE5MjQ1Zjg5YTZiNGE5Mzg3NTUxMThhIiwiaCI6Im11cm11cjY0In0=
 
-export const Routes: React.FC<RoutesProps> = ({
-  onNavigate
-}) => {
+export const Routes:  React.FC = () => {
+  const navigate = useNavigate();
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -282,7 +282,7 @@ export const Routes: React.FC<RoutesProps> = ({
                         <BellIcon size={14} className="mr-1" />
                         Notify
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => onNavigate('forum')}>
+                      <Button variant="outline" size="sm" onClick={() => navigate('/forum')}>
                         <MessageSquareIcon size={14} className="mr-1" />
                         Chat
                       </Button>
@@ -293,66 +293,60 @@ export const Routes: React.FC<RoutesProps> = ({
         </div>
         {/* Right side with map */}
         <div className="lg:w-2/3">
-  <Card className="h-[600px] flex items-center justify-center relative">
-    {/* {!mapLoaded ? (
-      <div className="text-center">
-        <MapIcon size={48} className="text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">Loading map...</p>
-      </div>
-    ) : ( */}
-     1. In your MapContainer JSX, update to:
+          <Card className="h-[600px] flex items-center justify-center relative">
+            
+            1. In your MapContainer JSX, update to HJKVHX FJKDFJDFJKDFJKDFHSDJHSDJHSD :
 
- <MapContainer
-  center={[-25.7461, 28.1881]}
-  zoom={12}
-  scrollWheelZoom
-  style={{ height: '600px', width: '100%' }}
->
-  <TileLayer
-    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-    attribution="&copy; OpenStreetMap contributors"
-  />
+            <MapContainer
+              center={[-25.7461, 28.1881]}
+              zoom={12}
+              scrollWheelZoom
+              style={{ height: '600px', width: '100%' }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+              />
 
-  {/* Adjust view to fit selected route */}
-  <MapViewController path={smoothedPath ?? null} />
+              {/* Adjust view to fit selected route */}
+              <MapViewController path={smoothedPath ?? null} />
 
-  {/* Draw route lines */}
-  {filteredRoutes.map(route => (
-    <Polyline
-      key={route.id}
-      positions={
-        route.id === selectedRoute
-          ? smoothedPath ?? route.path
-          : route.path
-      }
-      pathOptions={{
-        color: route.color,
-        weight: route.id === selectedRoute ? 6 : 3,
-        opacity: route.id === selectedRoute ? 1 : 0.6,
-      }}
-      eventHandlers={{
-        click: () => setSelectedRoute(route.id),
-      }}
-    />
-  ))}
+              {/* Draw route lines */}
+              {filteredRoutes.map(route => (
+                <Polyline
+                  key={route.id}
+                  positions={
+                    route.id === selectedRoute
+                      ? smoothedPath ?? route.path
+                      : route.path
+                  }
+                  pathOptions={{
+                    color: route.color,
+                    weight: route.id === selectedRoute ? 6 : 3,
+                    opacity: route.id === selectedRoute ? 1 : 0.6,
+                  }}
+                  eventHandlers={{
+                    click: () => setSelectedRoute(route.id),
+                  }}
+                />
+              ))}
 
-  {/* Add markers for stops */}
-  {selectedRouteData
-    ? selectedRouteData.stops.map((stop, idx) => (
-        <Marker key={idx} position={stop.coordinates} title={stop.name}>
-          <Popup>{stop.name}</Popup>
-        </Marker>
-      ))
-    : (
-        <Marker position={[-25.7461, 28.1881]}>
-          <Popup>Church Square</Popup>
-        </Marker>
-      )}
-</MapContainer>
+              {/* Add markers for stops */}
+              {selectedRouteData
+                ? selectedRouteData.stops.map((stop, idx) => (
+                    <Marker key={idx} position={stop.coordinates} title={stop.name}>
+                      <Popup>{stop.name}</Popup>
+                    </Marker>
+                  ))
+                : (
+                    <Marker position={[-25.7461, 28.1881]}>
+                      <Popup>Church Square</Popup>
+                    </Marker>
+                  )}
+            </MapContainer>
 
-    {/* )} */}
-  </Card>
-</div>
+          </Card>
+        </div>
       </div>
     </div>;
 };

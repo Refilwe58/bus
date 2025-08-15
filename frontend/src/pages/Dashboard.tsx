@@ -4,6 +4,7 @@ import { Button } from '../components/Button';
 import { getUserProfile, getUserTrips, getUserNotifications } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { CreditCardIcon, ClockIcon, HistoryIcon, TrendingUpIcon, CalendarIcon, MapIcon, Loader as LoaderIcon } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 interface DashboardProps {
   onNavigate: (page: string) => void;
 }
@@ -32,9 +33,8 @@ interface NotificationData {
   icon: string;
   routeId?: string;
 }
-export const Dashboard: React.FC<DashboardProps> = ({
-  onNavigate
-}) => {
+export const Dashboard:React.FC = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [trips, setTrips] = useState<TripData[]>([]);
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -151,7 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </p>
         </div>
         <div className="mt-4 md:mt-0">
-          <Button variant="primary" onClick={() => onNavigate('topup')}>
+          <Button variant="primary" onClick={() => navigate('/topup')}>
             <CreditCardIcon size={16} className="mr-2" />
             Top Up Card
           </Button>
@@ -181,7 +181,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
           </div>
           <div className="mt-6">
-            <Button variant="outline" className="border-white text-white hover:bg-teal-700" onClick={() => onNavigate('topup')}>
+            <Button variant="outline" className="border-white text-white hover:bg-teal-700" onClick={() => navigate('/topup')}>
               Top Up Now
             </Button>
           </div>
@@ -261,7 +261,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <h2 className="text-xl font-bold text-gray-800">
             Recent Notifications
           </h2>
-          <button className="text-teal-600 text-sm font-medium hover:text-teal-800" onClick={() => onNavigate('notifications')}>
+          <button className="text-teal-600 text-sm font-medium hover:text-teal-800" onClick={() => navigate('/notifications')}>
             View All →
           </button>
         </div>
@@ -294,7 +294,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div>
         <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow text-center" onClick={() => onNavigate('topup')}>
+          <button className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow text-center" onClick={() => navigate('/topup')}>
             <div className="flex justify-center mb-2">
               <CreditCardIcon size={24} className="text-teal-600" />
             </div>
@@ -306,13 +306,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <span className="block text-sm font-medium">Trip History</span>
           </button>
-          <button className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow text-center" onClick={() => onNavigate('routes')}>
+          <button className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow text-center" onClick={() => navigate('/routes')}>
             <div className="flex justify-center mb-2">
               <MapIcon size={24} className="text-teal-600" />
             </div>
             <span className="block text-sm font-medium">Route Map</span>
           </button>
-          <button className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow text-center" onClick={() => onNavigate('feedback')}>
+          <button className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow text-center" onClick={() => navigate('/feedback')}>
             <div className="flex justify-center mb-2">
               <CalendarIcon size={24} className="text-teal-600" />
             </div>

@@ -4,9 +4,11 @@ const app = express();
 import dotenv from 'dotenv';
 import Stripe from 'stripe';
 import bodyParser from 'body-parser';
-
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 dotenv.config({ path: './backend/.env' });
 const port = 5000;
+
 console.log('Stripe Key:', process.env.STRIPE_SECRET_KEY); 
 const stripe =new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -16,7 +18,13 @@ import {users} from './data.js'
 app.use(bodyParser.json());
 app.use(cors());
 app.use(express.json());
-
+const server = createServer(app); // <-- Important
+const io = new Server(server, {
+  cors: {
+    origin: '*', // frontend URL in prod
+    methods: ['GET', 'POST'],
+  },
+});
 // Route
 app.post('/api/login', handleLogin);
 
@@ -217,77 +225,77 @@ const notifications = [{
 }];
 // Forum messages
 const forumMessages = {
-  "general": [{
-    id: 1,
-    userId: 2,
-    text: "Hi everyone! How's the bus service today?",
-    time: "10:30 AM",
-    timestamp: "2023-09-20T10:30:00"
-  }, {
-    id: 2,
-    userId: 4,
-    text: "Pretty good so far! No delays on Route C2.",
-    time: "10:32 AM",
-    timestamp: "2023-09-20T10:32:00"
-  }, {
-    id: 3,
-    userId: 1,
-    text: "I noticed the new app update is much faster.",
-    time: "10:35 AM",
-    timestamp: "2023-09-20T10:35:00"
-  }, {
-    id: 4,
-    userId: 3,
-    text: "Has anyone tried the new express route to the airport?",
-    time: "10:40 AM",
-    timestamp: "2023-09-20T10:40:00"
-  }, {
-    id: 5,
-    userId: 5,
-    text: "Yes, it's great! Saved me about 20 minutes this morning.",
-    time: "10:42 AM",
-    timestamp: "2023-09-20T10:42:00"
-  }],
-  "route-a1": [{
-    id: 1,
-    userId: 3,
-    text: "Heads up! There's some traffic near Central Station.",
-    time: "09:15 AM",
-    timestamp: "2023-09-20T09:15:00"
-  }, {
-    id: 2,
-    userId: 1,
-    text: "Thanks for the info. How long is the delay?",
-    time: "09:17 AM",
-    timestamp: "2023-09-20T09:17:00"
-  }, {
-    id: 3,
-    userId: 3,
-    text: "About 10-15 minutes. The driver is taking an alternate route.",
-    time: "09:18 AM",
-    timestamp: "2023-09-20T09:18:00"
-  }],
-  "route-b3": [{
-    id: 1,
-    userId: 4,
-    text: "Does anyone know if the B3 route will be affected by the road works on Main Street?",
-    time: "Yesterday",
-    timestamp: "2023-09-19T15:20:00"
-  }, {
-    id: 2,
-    userId: 2,
-    text: "I heard it will be diverted via Park Avenue for the next two weeks.",
-    time: "Yesterday",
-    timestamp: "2023-09-19T15:45:00"
-  }],
-  "announcements": [{
-    id: 1,
-    userId: 5,
-    text: "ANNOUNCEMENT: System maintenance scheduled for tonight from 2-4 AM. The app may be unavailable during this time.",
-    time: "Yesterday",
-    timestamp: "2023-09-19T10:00:00"
-  }],
-  "help": []
+  // "general": [{
+  //   id: 1,
+  //   userId: 2,
+  //   text: "Hi everyone! How's the bus service today?",
+  //   time: "10:30 AM",
+  //   timestamp: "2023-09-20T10:30:00"
+  // }, {
+  //   id: 2,
+  //   userId: 4,
+  //   text: "Pretty good so far! No delays on Route C2.",
+  //   time: "10:32 AM",
+  //   timestamp: "2023-09-20T10:32:00"
+  // }, {
+  //   id: 3,
+  //   userId: 1,
+  //   text: "I noticed the new app update is much faster.",
+  //   time: "10:35 AM",
+  //   timestamp: "2023-09-20T10:35:00"
+  // }, {
+  //   id: 4,
+  //   userId: 3,
+  //   text: "Has anyone tried the new express route to the airport?",
+  //   time: "10:40 AM",
+  //   timestamp: "2023-09-20T10:40:00"
+  // }, {
+  //   id: 5,
+  //   userId: 5,
+  //   text: "Yes, it's great! Saved me about 20 minutes this morning.",
+  //   time: "10:42 AM",
+  //   timestamp: "2023-09-20T10:42:00"
+  // }],
+  // "route-a1": [{
+  //   id: 1,
+  //   userId: 3,
+  //   text: "Heads up! There's some traffic near Central Station.",
+  //   time: "09:15 AM",
+  //   timestamp: "2023-09-20T09:15:00"
+  // }, {
+  //   id: 2,
+  //   userId: 1,
+  //   text: "Thanks for the info. How long is the delay?",
+  //   time: "09:17 AM",
+  //   timestamp: "2023-09-20T09:17:00"
+  // }, {
+  //   id: 3,
+  //   userId: 3,
+  //   text: "About 10-15 minutes. The driver is taking an alternate route.",
+  //   time: "09:18 AM",
+  //   timestamp: "2023-09-20T09:18:00"
+  // }],
+  // "route-b3": [{
+  //   id: 1,
+  //   userId: 4,
+  //   text: "Does anyone know if the B3 route will be affected by the road works on Main Street?",
+  //   time: "Yesterday",
+  //   timestamp: "2023-09-19T15:20:00"
+  // }, {
+  //   id: 2,
+  //   userId: 2,
+  //   text: "I heard it will be diverted via Park Avenue for the next two weeks.",
+  //   time: "Yesterday",
+  //   timestamp: "2023-09-19T15:45:00"
+  // }],
+  // "announcements": [{
+  //   id: 1,
+  //   userId: 5,
+  //   text: "ANNOUNCEMENT: System maintenance scheduled for tonight from 2-4 AM. The app may be unavailable during this time.",
+  //   time: "Yesterday",
+  //   timestamp: "2023-09-19T10:00:00"
+  // }],
+  // "help": []
 };
 // Forum users
 const forumUsers = [{
@@ -460,16 +468,12 @@ app.get('/api/forum/channels/:channelId/messages', (req, res) => {
   res.json(enhancedMessages);
 });
 app.post('/api/forum/channels/:channelId/messages', (req, res) => {
-  const {
-    channelId
-  } = req.params;
-  const {
-    userId,
-    text
-  } = req.body;
-  if (!forumMessages[channelId]) {
-    forumMessages[channelId] = [];
-  }
+  const { channelId } = req.params;
+  const { userId, text } = req.body;
+
+  // Initialize channel array if it doesn't exist
+  if (!forumMessages[channelId]) forumMessages[channelId] = [];
+
   const newMessage = {
     id: forumMessages[channelId].length + 1,
     userId,
@@ -477,18 +481,45 @@ app.post('/api/forum/channels/:channelId/messages', (req, res) => {
     time: "Just now",
     timestamp: new Date().toISOString()
   };
+
+  // Store in the array
   forumMessages[channelId].push(newMessage);
-  // Add user data to the response
+
   const user = forumUsers.find(u => u.id === userId);
   const enhancedMessage = {
     ...newMessage,
-    user: user ? {
-      name: user.name,
-      avatar: user.avatar,
-      status: user.status
-    } : null
+    user: user ? { name: user.name, avatar: user.avatar, status: user.status } : null
   };
+
+  // Emit to clients
+  io.to(channelId).emit('newMessage', enhancedMessage);
+
   res.status(201).json(enhancedMessage);
+});
+
+
+// Socket.IO logic
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('joinChannel', (channelId) => {
+    socket.join(channelId);
+    console.log(`${socket.id} joined ${channelId}`);
+  });
+
+  socket.on('leaveChannel', (channelId) => {
+    socket.leave(channelId);
+    console.log(`${socket.id} left ${channelId}`);
+  });
+
+  socket.on('sendMessage', ({ channelId, message }) => {
+    // Broadcast to everyone in the channel
+    io.to(channelId).emit('newMessage', message);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
 });
 app.get('/api/forum/users', (req, res) => {
   res.json(forumUsers);
@@ -652,6 +683,6 @@ app.get('/api/users/:id/topup/status', async (req, res) => {
 });
 
 // Start server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Tshwane Bus API server running at http://localhost:${port}`);
 });

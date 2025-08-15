@@ -3,12 +3,12 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { UserIcon, KeyIcon, EyeIcon, EyeOffIcon, AlertCircleIcon } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 interface LoginProps {
   onNavigate: (page: string) => void;
 }
-export const Login: React.FC<LoginProps> = ({
-  onNavigate
-}) => {
+export const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +28,7 @@ export const Login: React.FC<LoginProps> = ({
     try {
       const success = await login(email, password);
       if (success) {
-        onNavigate('dashboard');
+        navigate('/dashboard');
       } else {
         setError('Invalid email or password');
       }
@@ -94,7 +94,7 @@ export const Login: React.FC<LoginProps> = ({
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <button className="text-teal-600 hover:text-teal-800 font-medium" onClick={() => onNavigate('landing')}>
+              <button className="text-teal-600 hover:text-teal-800 font-medium" onClick={() => navigate('/landing')}>
                 Register
               </button>
             </p>

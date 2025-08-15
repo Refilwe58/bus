@@ -8,13 +8,12 @@ import {
 } from '../api';
 import { CreditCardIcon, CheckCircleIcon, ChevronRightIcon, InfoIcon, Lock as LockIcon } from 'lucide-react';
 import {loadStripe} from '@stripe/stripe-js';
-
+import { useNavigate } from "react-router-dom";
 interface TopUpProps {
   onNavigate: (page: string) => void;
 }
-export const TopUp: React.FC<TopUpProps> = ({
-  onNavigate
-}) => {
+export const TopUp: React.FC = () => {
+  const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [step, setStep] = useState(1);
@@ -40,57 +39,57 @@ export const TopUp: React.FC<TopUpProps> = ({
     }
     return 0;
   });
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const rawSessionId = params.get('session_id');
-  const succ = params.get('success');       // string or null
-  const stepParam = parseInt(params.get('step') || '0', 10);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const rawSessionId = params.get('session_id');
+    const succ = params.get('success');       // string or null
+    const stepParam = parseInt(params.get('step') || '0', 10);
 
-  // Clean sessionId from curly braces if any
-  const sessionId = rawSessionId?.replace(/[{}]/g, '');
+    // Clean sessionId from curly braces if any
+    const sessionId = rawSessionId?.replace(/[{}]/g, '');
 
-  // Exit early if no sessionId or success param is not "true"
-  if (!sessionId || succ !== 'true') return;
+    // Exit early if no sessionId or success param is not "true"
+    if (!sessionId || succ !== 'true') return;
 
-  // Only proceed if step is 4 (payment success page)
-  if (stepParam !== 4) return;
+    // Only proceed if step is 4 (payment success page)
+    if (stepParam !== 4) return;
 
-  // Immediately update UI to step 4 to show success screen
-  setStep(4);
+    // Immediately update UI to step 4 to show success screen
+    setStep(4);
 
-  async function checkPaymentStatus(sessionId: string) {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) return;
-    const userData = JSON.parse(userStr);
+    async function checkPaymentStatus(sessionId: string) {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return;
+      const userData = JSON.parse(userStr);
 
-    try {
-      console.log("Checking payment status with sessionId:", sessionId);
-      ///updating balance with api
-      const response = await checkTopUpStatus(userData.id, sessionId);
-      if (response.data.success) {
-        console.log("Payment success response:", response.data);
-        setBalance(response.data.balance);
-        setLastTopUp(response.data.lastTopUp);
+      try {
+        console.log("Checking payment status with sessionId:", sessionId);
+        ///updating balance with api
+        const response = await checkTopUpStatus(userData.id, sessionId);
+        if (response.data.success) {
+          console.log("Payment success response:", response.data);
+          setBalance(response.data.balance);
+          setLastTopUp(response.data.lastTopUp);
 
-        const updatedUser = {
-          ...userData,
-          balance: response.data.balance,
-          lastTopUp: response.data.lastTopUp,
-        };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+          const updatedUser = {
+            ...userData,
+            balance: response.data.balance,
+            lastTopUp: response.data.lastTopUp,
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
 
-        // Clean URL to remove query params after handling success
-        window.history.replaceState(null, '', window.location.pathname);
-      } else {
-        alert(response.data.message || 'Payment not completed yet.');
+          // Clean URL to remove query params after handling success
+          window.history.replaceState(null, '', window.location.pathname);
+        } else {
+          alert(response.data.message || 'Payment not completed yet.');
+        }
+      } catch (error) {
+        console.error('Error checking payment status:', error);
       }
-    } catch (error) {
-      console.error('Error checking payment status:', error);
     }
-  }
 
-  checkPaymentStatus(sessionId);
-}, []);
+    checkPaymentStatus(sessionId);
+  }, []);
 
 
 
@@ -137,7 +136,7 @@ useEffect(() => {
       alert('Top-up failed due to an error.');
     }
   } else if (step === 4 && succ) {
-    onNavigate('dashboard');
+    navigate('/dashboard');
   }
 };
 
@@ -414,7 +413,7 @@ useEffect(() => {
           </div>
 
           <div className="mt-6">
-            <Button onClick={() => onNavigate("dashboard")}>Back to Dashboard</Button>
+            <Button onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
           </div>
         </div>
       )}

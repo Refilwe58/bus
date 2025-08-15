@@ -4,6 +4,10 @@ import { Button } from '../components/Button';
 import { getForumChannels, getChannelMessages, sendChannelMessage, getForumUsers } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { MessageSquare as MessageSquareIcon, Send as SendIcon, Users as UsersIcon, User as UserIcon, Clock as ClockIcon, ChevronDown as ChevronDownIcon, Loader as LoaderIcon } from 'lucide-react';
+import io from 'socket.io-client';
+export const socket = io('http://localhost:5000', {
+  transports: ['websocket', 'polling'], // fallback included
+});
 interface ForumProps {
   onNavigate: (page: string) => void;
 }
@@ -123,43 +127,72 @@ export const Forum: React.FC<ForumProps> = ({
     }
   }, [activeChannel, messages]);
   // Simulate receiving a new message via Socket.io
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (activeChannel === 'general' && messages.general && messages.general.length > 0) {
-        const newMessage = {
-          id: messages.general[messages.general.length - 1].id + 1,
-          userId: 2,
-          text: 'By the way, has anyone noticed the new bus stops being installed on Main Street?',
-          time: 'Just now',
-          timestamp: new Date().toISOString(),
-          user: {
-            name: 'Jane Smith',
-            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80',
-            status: 'online'
-          }
-        };
-        setMessages(prev => ({
-          ...prev,
-          general: [...(prev.general || []), newMessage]
-        }));
-      }
-    }, 10000);
-    return () => clearTimeout(timer);
-  }, [activeChannel, messages]);
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim() === '' || !user) return;
-    try {
-      const response = await sendChannelMessage(activeChannel, user.id, message);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (activeChannel === 'general' && messages.general && messages.general.length > 0) {
+  //       const newMessage = {
+  //         id: messages.general[messages.general.length - 1].id + 1,
+  //         userId: 2,
+  //         text: 'By the way, has anyone noticed the new bus stops being installed on Main Street?',
+  //         time: 'Just now',
+  //         timestamp: new Date().toISOString(),
+  //         user: {
+  //           name: 'Jane Smith',
+  //           avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80',
+  //           status: 'online'
+  //         }
+  //       };
+  //       setMessages(prev => ({
+  //         ...prev,
+  //         general: [...(prev.general || []), newMessage]
+  //       }));
+  //     }
+  //   }, 10000);
+  //   return () => clearTimeout(timer);
+  // }, [activeChannel, messages]);
+   // Join Socket.IO room for active channel
+   useEffect(() => {
+    socket.emit('joinChannel', activeChannel);
+
+    // Listen for new messages in this channel
+    socket.on('newMessage', (newMsg: ForumMessage) => {
       setMessages(prev => ({
         ...prev,
-        [activeChannel]: [...(prev[activeChannel] || []), response.data]
+        [activeChannel]: [...(prev[activeChannel] || []), newMsg],
       }));
+    });
+
+    // Cleanup on channel change
+    return () => {
+      socket.emit('leaveChannel', activeChannel);
+      socket.off('newMessage');
+    };
+  }, [activeChannel]);
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim() || !user) return;
+  
+    try {
+      // Call the API to post the message
+      const response = await sendChannelMessage(activeChannel, user.id, message);
+      const newMsg = response.data; // This includes user info from backend
+  
+      // Optimistically add message to local state
+      setMessages(prev => ({
+        ...prev,
+        [activeChannel]: [...(prev[activeChannel] || []), newMsg],
+      }));
+  
       setMessage('');
-    } catch (err) {
-      console.error('Failed to send message:', err);
+  
+      // Optional: still emit via Socket.IO for real-time update for other users
+      socket.emit('sendMessage', { channelId: activeChannel, message: newMsg });
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
   };
+  
+  
   const isLoading = loading.channels || loading.users;
   if (isLoading) {
     return <div className="container mx-auto px-4 py-8 flex items-center justify-center h-64">

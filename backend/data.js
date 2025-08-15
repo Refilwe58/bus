@@ -14,5 +14,21 @@ export const users = [{
     date: "2023-08-15"
   },
   favoriteRoutes: ["A1", "B3", "C2"]
+},
+{
+  id: 2,
+  name: "Jane Smith",
+  email: "jane.smith@example.com",
+  phone: "+27 21 987 6543",
+  address: "456 Elm Street, Pretoria",
+  password: "securepass456",
+  profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+  balance: 200.75,
+  cardNumber: "5432123456789012",
+  lastTopUp: {
+    amount: 100.00,
+    date: "2023-08-20"
+  },
+  favoriteRoutes: ["A1", "C2", "D4"]
 }];
 
