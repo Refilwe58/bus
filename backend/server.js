@@ -6,7 +6,12 @@ import Stripe from 'stripe';
 import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { db } from './firebase.js';
 dotenv.config({ path: './backend/.env' });
+// const fb = initializeApp( process.env.firebaseConfig);
+//  const db = getFirestore(app);
 const port = 5000;
 
 console.log('Stripe Key:', process.env.STRIPE_SECRET_KEY); 
@@ -22,7 +27,8 @@ const server = createServer(app); // <-- Important
 const io = new Server(server, {
   cors: {
     origin: '*', // frontend URL in prod
-    methods: ['GET', 'POST'],
+    methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+     allowedHeaders: ['Content-Type', 'Authorization'],
   },
 });
 // Route
@@ -183,7 +189,7 @@ const routes = [{
 }];
 // Trip history
 const tripHistory = [{
-  userId: 1,
+  userId: "lh9zGXGOvjEL4REjrx45",
   routeId: "A1",
   timestamp: "2023-09-20T08:15:00",
   amount: 8.50
@@ -299,7 +305,7 @@ const forumMessages = {
 };
 // Forum users
 const forumUsers = [{
-  id: 1,
+  id: "lh9zGXGOvjEL4REjrx45",
   name: "John Doe",
   status: "online",
   avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80"
@@ -327,7 +333,7 @@ const forumUsers = [{
 // Payment methods
 const paymentMethods = [{
   id: 1,
-  userId: 1,
+  userId: "lh9zGXGOvjEL4REjrx45",
   type: "Visa",
   last4: "4242",
   expiry: "04/25"
@@ -365,21 +371,43 @@ const paymentMethods = [{
 //   }
 // });
 // User endpoints
-app.get('/api/users/:id', (req, res) => {
-  const user = users.find(u => u.id === parseInt(req.params.id));
-  if (user) {
+app.get('/api/users/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Reference the collection
+    const userDoc = await db.collection('1').doc(userId).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = userDoc.data();
+
     // Don't send password in response
-    const {
-      password,
-      ...userWithoutPassword
-    } = user;
+    const { password, ...userWithoutPassword } = user;
+
     res.json(userWithoutPassword);
-  } else {
-    res.status(404).json({
-      message: "User not found"
-    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
+// app.get('/api/users/:id', (req, res) => {
+//   const user = users.find(u => u.id === parseInt(req.params.id));
+//   if (user) {
+//     // Don't send password in response
+//     const {
+//       password,
+//       ...userWithoutPassword
+//     } = user;
+//     res.json(userWithoutPassword);
+//   } else {
+//     res.status(404).json({
+//       message: "User not found"
+//     });
+//   }
+// });
 app.put('/api/users/:id', (req, res) => {
   const userId = parseInt(req.params.id);
   const userIndex = users.findIndex(u => u.id === userId);
@@ -601,13 +629,22 @@ app.post('/api/users/:id/payment-methods', (req, res) => {
 // });
 
 app.post('/api/users/:id/topup', async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const userId = req.params.id;
   const { amount } = req.body;
-  const userIndex = users.findIndex(u => u.id === userId);
-
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, message: "User not found" });
-  }
+  //const userIndex = users.findIndex(u => u.id === userId);
+// console.log('=== TOPUP REQUEST DEBUG ===');
+//     console.log('User ID from params:', userId);
+//     console.log('Amount from body:', amount);
+//     console.log('Request body:', req.body);
+    
+  // if (userIndex === -1) {
+  //   return res.status(404).json({ success: false, message: "User not found" });
+  // }
+   const userDoc = await db.collection('1').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -643,45 +680,132 @@ cancel_url: `http://localhost:5173/topup?success=false&step=0`,
 
 
 // 2. Check payment status and update balance
+// app.get('/api/users/:id/topup/status', async (req, res) => {
+//   const userId = req.params.id;
+//   const { sessionId } = req.query;
+
+//   if (!sessionId) return res.status(400).json({ success: false, message: 'Missing sessionId' });
+
+//   const userIndex = users.findIndex(u => u.id === userId);
+//   if (userIndex === -1) return res.status(404).json({ success: false, message: "User not found" });
+
+//   try {
+//     const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+//     if (session.payment_status === 'paid') {
+//       const amount = parseFloat(session.metadata.amount);
+
+//       // Optional: avoid double update if sessionId was already used
+//       if (!users[userIndex].lastTopUp || users[userIndex].lastTopUp.sessionId !== sessionId) {
+//         users[userIndex].balance += amount;
+//         users[userIndex].lastTopUp = {
+//           amount,
+//           date: new Date().toISOString().split('T')[0],
+//           sessionId
+//         };
+//       }
+
+//       return res.json({
+//         success: true,
+//         balance: users[userIndex].balance,
+//         lastTopUp: users[userIndex].lastTopUp,
+//       });
+//     } else {
+//       return res.json({ success: false, message: 'Payment not completed yet' });
+//     }
+//   } catch (error) {
+//     console.error('Error checking payment status:', error);
+//     res.status(500).json({ success: false, message: 'Failed to check payment status' });
+//   }
+// });
 app.get('/api/users/:id/topup/status', async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const userId = req.params.id;
   const { sessionId } = req.query;
 
-  if (!sessionId) return res.status(400).json({ success: false, message: 'Missing sessionId' });
-
-  const userIndex = users.findIndex(u => u.id === userId);
-  if (userIndex === -1) return res.status(404).json({ success: false, message: "User not found" });
+  if (!sessionId) {
+    return res.status(400).json({ success: false, message: 'Missing sessionId' });
+  }
 
   try {
+    // Get user from database
+    const userDoc = await db.collection('1').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const userData = userDoc.data();
+    console.log('Current user data:', userData);
+    console.log('Current lastTopUp:', userData.lastTopUp);
+
+    // Retrieve Stripe session
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid') {
       const amount = parseFloat(session.metadata.amount);
 
-      // Optional: avoid double update if sessionId was already used
-      if (!users[userIndex].lastTopUp || users[userIndex].lastTopUp.sessionId !== sessionId) {
-        users[userIndex].balance += amount;
-        users[userIndex].lastTopUp = {
-          amount,
-          date: new Date().toISOString().split('T')[0],
-          sessionId
-        };
-      }
+      // Check if this session was already processed
+      const alreadyProcessed = userData.lastTopUp && 
+                              userData.lastTopUp.sessionId === sessionId;
 
-      return res.json({
-        success: true,
-        balance: users[userIndex].balance,
-        lastTopUp: users[userIndex].lastTopUp,
-      });
+      if (!alreadyProcessed) {
+        // Calculate new balance
+        const currentBalance = userData.balance || 0;
+        const newBalance = currentBalance + amount;
+
+        // Prepare the new lastTopUp object
+        const newLastTopUp = {
+          amount: amount,
+          date: new Date().toISOString().split('T')[0],
+          sessionId: sessionId
+        };
+
+        console.log('Updating with:', {
+          balance: newBalance,
+          lastTopUp: newLastTopUp
+        });
+
+        // Update the user document in database
+        await db.collection('1').doc(userId).update({
+          balance: newBalance,
+          lastTopUp: newLastTopUp
+        });
+
+        return res.json({
+          success: true,
+          balance: newBalance,
+          lastTopUp: newLastTopUp,
+        });
+      } else {
+        // Session already processed, return current data
+        console.log('Session already processed, returning existing data');
+        return res.json({
+          success: true,
+          balance: userData.balance,
+          lastTopUp: userData.lastTopUp,
+        });
+      }
     } else {
-      return res.json({ success: false, message: 'Payment not completed yet' });
+      return res.json({ 
+        success: false, 
+        message: 'Payment not completed yet',
+        paymentStatus: session.payment_status 
+      });
     }
   } catch (error) {
     console.error('Error checking payment status:', error);
-    res.status(500).json({ success: false, message: 'Failed to check payment status' });
+    
+    if (error.code === 'not-found') {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to check payment status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
-
 // Start server
 server.listen(port, () => {
   console.log(`Tshwane Bus API server running at http://localhost:${port}`);

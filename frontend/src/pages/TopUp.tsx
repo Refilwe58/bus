@@ -117,7 +117,13 @@ export const TopUp: React.FC = () => {
 
       const userData = JSON.parse(userStr);
       // Create checkout session, get sessionId using the api
+      console.log('Calling topUpUserBalance with:', userData.id, parseFloat(amount));
+
       const response = await topUpUserBalance(userData.id, parseFloat(amount));
+      console.log('API Response:', response);
+      if (!response || !response.data) {
+    throw new Error('Invalid response from API');
+  }
       const { sessionId, success } = response.data;
 
       if (success) {
@@ -133,8 +139,17 @@ export const TopUp: React.FC = () => {
       }
     } catch (error) {
       console.error('Top-up error:', error);
-      alert('Top-up failed due to an error.');
-    }
+      if (error.response) {
+        console.error('API Error Response:', error.response.data);
+        alert(`Top-up failed: ${error.response.data.message || 'Server error'}`);
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+        alert('Network error. Please check your connection.');
+      } else {
+        console.error('Error:', error.message);
+        alert(`Top-up failed: ${error.message}`);
+      }
+        }
   } else if (step === 4 && succ) {
     navigate('/dashboard');
   }

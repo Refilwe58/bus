@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { useNavigate } from "react-router-dom";
 import { CreditCardIcon, BellIcon, MessageSquareTextIcon, ShieldCheckIcon, ClockIcon, MapPinIcon, CheckCircleIcon } from 'lucide-react';
 interface LandingPageProps {
   onNavigate: (page: string) => void;
 }
-export const LandingPage: React.FC<LandingPageProps> = ({
-  onNavigate
-}) => {
+export const LandingPage: React.FC= () => {
+  const navigate = useNavigate();
   return <div className="w-full">
       {/* Hero Section */}
       <section className="bg-teal-600 text-white py-16 md:py-24">
@@ -25,10 +25,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 notifications, and a direct line to service improvements.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button variant="primary" size="lg" className="bg-white text-teal-600 hover:bg-teal-100" onClick={() => onNavigate('login')}>
+                <Button variant="primary" size="lg" className="bg-white text-teal-600 hover:bg-teal-100" onClick={() => navigate('/login')}>
                   Get Started
                 </Button>
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-teal-700" onClick={() => onNavigate('feedback')}>
+                <Button variant="outline" size="lg" className="border-white text-white hover:bg-teal-700" onClick={() => navigate('/feedback')}>
                   Send Feedback
                 </Button>
               </div>
